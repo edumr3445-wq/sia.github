@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matriz de Auditoría</title>
+<link rel="stylesheet" href="estilos.css?v=71">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="vista-login" class="login-wrap">
+  <form id="form-login" class="login-card" autocomplete="on">
+    <div class="brand">
+      <div class="brand-mark">MA</div>
+      <div>
+        <h1>Matriz de Auditoría</h1>
+        <p class="muted" id="login-version">Grupo KFC · Auditoría Ecuador</p>
+      </div>
+    </div>
+    <label>Usuario
+      <input id="login-usuario" name="usuario" autocomplete="username" required placeholder="ej. maria.molina.2">
+    </label>
+    <label>Contraseña
+      <div class="pwd">
+        <input id="login-clave" name="clave" type="password" autocomplete="current-password" required>
+        <button type="button" id="btn-ver-clave" class="ghost sm" aria-label="Mostrar contraseña">Ver</button>
+      </div>
+    </label>
+    <p id="login-error" class="error" role="alert" hidden></p>
+    <button type="submit" class="primary block">Ingresar</button>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="vista-app" hidden>
+  <header class="topbar">
+    <div class="brand sm">
+      <div class="brand-mark">MA</div>
+      <strong>Matriz de Auditoría</strong>
+      <span class="muted hide-sm" id="app-version"></span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="locales" class="active">Locales</button>
+      <button role="tab" data-tab="informe">Informe</button>
+      <button role="tab" data-tab="activos">Activos</button>
+      <button role="tab" data-tab="cumplimiento">Cumplimiento de activos</button>
+      <button role="tab" data-tab="bajas">Baja de activos</button>
+      <button role="tab" data-tab="producto">Producto</button>
+      <button role="tab" data-tab="tendencias">Tendencias</button>
+      <button role="tab" data-tab="correo">Outlook</button>
+      <button role="tab" data-tab="manuales">Manuales auditoría</button>
+      <button role="tab" data-tab="conciliacion">Conciliación bancaria</button>
+      <button role="tab" data-tab="novact" hidden>Novedades de activos</button>
+    </nav>
+    <div class="user">
+      <span id="user-nombre"></span>
+      <button id="btn-salir" class="ghost sm">Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- LOCALES -->
+    <section data-panel="locales">
+      <div class="kpis" id="kpis"></div>
+      <div class="filtros">
+        <input id="f-buscar" type="search" placeholder="Buscar local, jefe de área, auditor…">
+        <select id="f-zona"><option value="">Todas las zonas</option></select>
+        <select id="f-cadena"><option value="">Todas las cadenas</option></select>
+        <select id="f-auditor"><option value="">Todos los auditores</option></select>
+        <select id="f-banco"><option value="">Todos los bancos</option></select>
+        <label class="chk"><input type="checkbox" id="f-mios"> Solo mis locales</label>
+      </div>
+      <div class="tabla-wrap">
+        <table id="tabla-locales">
+          <thead><tr>
+            <th data-k="local">Local</th><th data-k="cadena">Cadena</th><th data-k="zona">Zona</th>
+            <th data-k="auditor">Auditor</th><th data-k="jefe">Jefe de área</th><th data-k="banco">Banco</th>
+            <th data-k="deposito">Depósito</th><th data-k="caja" class="num">Caja chica</th>
+            <th data-k="dvr">DVR</th><th data-k="grabacion" class="num">Días grab.</th><th data-k="status">Status</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="muted small" id="conteo"></p>
+    </section>
+
+    <!-- INFORME / CHECKLIST -->
+    <section data-panel="informe" hidden>
+      <div class="local-bar">
+        <label>Local
+          <input id="sel-local" list="lista-locales" placeholder="Escribe o elige un local">
+          <datalist id="lista-locales"></datalist>
+        </label>
+        <label>Tipo de informe
+          <select id="sel-informe">
+            <option>Chequeo Total - Check List Procesos</option>
+            <option>Visita Parcial - Check List Procesos</option>
+          </select>
+        </label>
+        <label>Fecha <input id="sel-fecha" type="date"></label>
+      </div>
+      <div id="ficha-local" class="ficha"></div>
+
+      <div class="grid-2 informe-grid">
+        <div class="card">
+          <h2>Check list de procesos</h2>
+          <p class="muted small">Ítems 1–16: elige «Cumple» o «No cumple» (con observación). Del 17 en adelante marca solo los que tengan novedad. Cada novedad resta sus puntos de 100.</p>
+          <div id="checklist"></div>
+        </div>
+        <div class="card res-card">
+          <div class="card-head">
+            <h2>Resultado</h2>
+            <button type="button" class="ghost sm" id="res-copiar">Copiar cuadro como imagen</button>
+          </div>
+          <div id="res-cuadro" class="res-cuadro"></div>
+          <p id="score-txt" class="muted small"></p>
+          <label>Observaciones generales <small class="muted">(una por línea: cada línea será una viñeta del correo)</small>
+            <textarea id="observaciones" rows="6" placeholder="Seguimiento y control rubro de empaques, bebidas y chocolate&#10;Intermitencia en grabación de cámaras de caja y salón&#10;MUY BUEN control de bajas"></textarea>
+          </label>
+          <div class="acciones">
+            <button class="ghost" id="btn-limpiar">Limpiar</button>
+            <button class="ghost" id="btn-registrar">Registrar en tendencias</button>
+            <button class="primary" data-ir="correo" data-enfoque="Visita parcial Local">Enviar por Outlook</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVOS -->
+    <section data-panel="activos" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Inventario Total de Activos</h2>
+            <p class="muted small" id="activos-local">Selecciona un local en la pestaña Informe o en la tabla.</p>
+          </div>
+          <button type="button" class="ghost" data-enviar-activos hidden title="Correo para Amanda Taimal con todas tus novedades de activos y bajas">📤 Enviar a Activos</button>
+          <div class="kpis mini cuatro">
+            <div><b id="a-registrados">0</b><span>Registrados SIR</span></div>
+            <div><b id="a-verificados">0</b><span>Verificados</span></div>
+            <div><b id="a-pendientes">0</b><span>Pendientes</span></div>
+            <div><b id="a-novedades">0</b><span>Con novedad</span></div>
+          </div>
+        </div>
+        <div class="carga" id="a-carga">
+          <div class="carga-txt">
+            <b>Activos fijos del SIR</b>
+            <span class="muted small" id="a-archivo-info">Sube el archivo .xls de activos fijos exportado del SIR (o arrástralo aquí) para ver todos los activos del local.</span>
+          </div>
+          <input type="file" id="a-archivo" accept=".xls,.xlsx,.htm,.html" hidden>
+          <button class="primary" type="button" id="a-subir">Subir archivo</button>
+        </div>
+        <div class="carga" id="vl-carga" hidden>
+          <div class="carga-txt">
+            <b>Valor en libros</b>
+            <span class="muted small" id="vl-info"></span>
+          </div>
+          <span class="vl-admin acciones wrap" id="vl-admin" hidden>
+            <input type="file" id="vl-archivo" accept=".xlsx,.xlsm" hidden>
+            <label class="na-orden">Mes <select id="vl-mes" aria-label="Mes del valor en libros"></select></label>
+            <button class="ghost" type="button" id="vl-publicar" title="Guarda la base en la carpeta de la app para que la vean los auditores">Publicar para todos</button>
+            <button class="ghost" type="button" id="vl-subir">📤 Subir base</button>
+          </span>
+          <button class="primary" type="button" id="vl-verificar" disabled>🔎 Verificar valor en libros</button>
+        </div>
+        <div class="carga" id="j-carga">
+          <div class="carga-txt">
+            <b>Respaldo de la app de inventario (.json)</b>
+            <span class="muted small" id="j-info">Importa el respaldo .json (con fotos, estado, ubicación y novedades) y se cruza con el listado del SIR por código y serie.</span>
+          </div>
+          <input type="file" id="j-archivo" accept=".json,application/json" hidden>
+          <button class="ghost" type="button" id="j-sueltas" hidden>📷 Fotos sueltas</button>
+          <button class="primary" type="button" id="j-subir">Importar .json</button>
+        </div>
+        <div class="cuadro-box">
+          <div class="card-head">
+            <h3>Cuadro de novedades de activos</h3>
+            <button type="button" class="ghost sm" id="ca-copiar">Copiar cuadro para el correo</button>
+          </div>
+          <div id="cuadro-act" class="cuadro-act"></div>
+        </div>
+        <div class="filtros-activos">
+          <input id="a-buscar" type="search" placeholder="Buscar código, nombre, marca, serie…">
+          <select id="a-filtro">
+            <option value="">Todos</option><option value="pend">Pendientes de revisar</option>
+            <option value="nov">Con novedad</option><option value="ok">Sin novedad</option><option value="fotos">Con fotos</option>
+            <option value="enapp">Encontrados en la app</option><option value="noapp">No están en la app</option><option value="soloapp">Solo en la app (no en el SIR)</option>
+          </select>
+          <label class="chk"><input type="checkbox" id="a-transferidos"> Ver transferidos <span id="a-n-transf"></span></label>
+          <button class="ghost" type="button" id="a-todos-ok">Marcar pendientes como OK</button>
+        </div>
+        <div class="tabla-wrap">
+          <table id="tabla-activos">
+            <thead><tr><th class="col-quitar"><span class="sr">Eliminar</span></th><th>Código</th><th>Nombre</th><th>Marca / Modelo</th><th>Serie</th><th class="num">Valor en libros</th><th>Estado</th><th>Novedad</th><th>Fotos</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <details class="agregar-activo" id="gestion">
+          <summary>Registrar novedad de activo: nuevo, modificado, perdido, sin transferencia…</summary>
+          <div class="gestion">
+            <p class="g-pregunta">Elige la novedad</p>
+            <div class="g-opciones" id="g-opciones" role="radiogroup" aria-label="Novedad"></div>
+
+            <!-- Elegir activo (modificar / perdido) -->
+            <div class="g-elegir" id="g-elegir" hidden>
+              <label>Activo <input id="g-buscar" type="search" placeholder="Busca por código, nombre o serie" autocomplete="off"></label>
+              <ul class="as-resultados g-resultados" id="g-resultados"></ul>
+              <div class="g-actual" id="g-actual" hidden></div>
+            </div>
+
+            <!-- Activo nuevo -->
+            <div class="g-campos" id="g-nuevo">
+              <label>Código <input name="codigo" placeholder="Código del activo"></label>
+              <label>Nombre <input name="nombre" placeholder="Nombre" required></label>
+              <label>Marca <input name="marca" placeholder="Marca"></label>
+              <label>Modelo <input name="modelo" placeholder="Modelo"></label>
+              <label>Serie <input name="serie" placeholder="Serie"></label>
+            </div>
+
+            <!-- Modificar: qué se cambia -->
+            <div id="g-modificar" hidden>
+              <p class="g-pregunta">¿Qué vas a modificar?</p>
+              <div class="g-checks">
+                <label class="chk"><input type="checkbox" value="nombre"> <span>Nombre</span></label>
+                <label class="chk"><input type="checkbox" value="marca"> <span>Marca</span></label>
+                <label class="chk"><input type="checkbox" value="modelo"> <span>Modelo</span></label>
+                <label class="chk"><input type="checkbox" value="serie"> <span>Serie</span></label>
+              </div>
+              <div class="g-campos" id="g-mod-campos"></div>
+            </div>
+
+            <label id="g-obs-lbl">Observación <textarea id="g-obs" rows="2" placeholder="Detalle para el informe (opcional)"></textarea></label>
+
+            <div class="g-fotos">
+              <div class="g-fotos-cab"><b>Fotos</b> <span class="muted small">Clic en una foto para ampliarla</span></div>
+              <div class="g-miniaturas" id="g-miniaturas"></div>
+              <input type="file" id="g-input" accept="image/*" multiple hidden>
+              <input type="file" id="g-camara" accept="image/*" capture="environment" hidden>
+              <div class="acciones wrap" style="justify-content:flex-start">
+                <button type="button" class="ghost" id="g-tomar">Tomar foto</button>
+                <button type="button" class="ghost" id="g-agregar-foto">Agregar imágenes</button>
+              </div>
+            </div>
+
+            <div class="acciones">
+              <button type="button" class="ghost" id="g-revertir" hidden>Revertir cambios de este activo</button>
+              <button type="button" class="ghost" id="g-limpiar">Limpiar</button>
+              <button type="button" class="primary" id="g-guardar">Agregar activo</button>
+            </div>
+          </div>
+        </details>
+        <label class="inline">Activos registrados en el SIR
+          <input id="a-sir" type="number" min="0" value="0">
+          <small class="muted">(se llena solo al subir el archivo)</small>
+        </label>
+        <div class="acciones">
+          <button class="ghost" type="button" id="a-fichas">📄 Fichas de activos (PDF)</button>
+          <button class="ghost" type="button" id="a-fichas-nov">📄 PDF novedades (crear · modificar · perdidos)</button>
+          <button class="primary" data-ir="correo" data-enfoque="Inventario Total Activos">Enviar inventario por Outlook</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUMPLIMIENTO DE ACTIVOS Y CUENTAS POR COBRAR (todos los locales de la zona) -->
+    <section data-panel="cumplimiento" hidden>
+      <div class="local-bar cu-bar">
+        <label>Zona (auditor) <select id="cu-zona"></select></label>
+        <label>Mes <input id="cu-mes" type="month"></label>
+        <div class="muted small t-nota">Aquí se trabajan todos los locales de la zona del auditor. Los datos se guardan solos.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Cumplimiento Inventario Activos</h2>
+            <p class="muted small" id="cu-resumen"></p>
+          </div>
+          <div class="acciones wrap">
+            <button type="button" class="ghost sm" id="cu-copiar">Copiar como imagen</button>
+            <button type="button" class="primary sm" data-ir="correo" data-enfoque="Cumplimiento Inventario Activos">Enviar por Outlook</button>
+          </div>
+        </div>
+        <div class="tabla-wrap">
+          <table id="cu-tabla" class="cu-tabla">
+            <thead><tr><th>#</th><th>Local</th><th>Fecha inventario</th><th>Equipo administrativo</th><th>Estatus</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Análisis de Cuentas por Cobrar</h2>
+            <p class="muted small">Últimos tres meses. La tabla se ordena por el último mes, de mayor a menor.</p>
+          </div>
+          <div class="acciones wrap">
+            <button type="button" class="ghost sm" id="cx-copiar">Copiar como imagen</button>
+            <button type="button" class="primary sm" data-ir="correo" data-enfoque="Análisis Cuentas por Cobrar">Enviar por Outlook</button>
+          </div>
+        </div>
+        <div class="cx-grid">
+          <div class="tabla-wrap">
+            <table id="cx-tabla" class="cx-tabla"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+          </div>
+          <div class="cx-dash">
+            <div class="kpis cx-kpis" id="cx-kpis"></div>
+            <h3 class="cx-tit" id="cx-tit">Cuentas por cobrar por local</h3>
+            <div class="cx-barras" id="cx-barras"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BAJA DE ACTIVOS -->
+    <section data-panel="bajas" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Baja de activos</h2>
+            <p class="muted small" id="b-local">Elige el activo que se va a dar de baja.</p>
+          </div>
+          <button type="button" class="ghost" data-enviar-activos hidden title="Correo para Amanda Taimal con todas tus novedades de activos y bajas">📤 Enviar a Activos</button>
+        </div>
+        <div class="grid-2 parejo b-grid">
+          <div class="b-col">
+            <label>Activo <input id="b-buscar" type="search" placeholder="Busca por código, nombre o serie (ej. acaramelizador)" autocomplete="off"></label>
+            <ul class="as-resultados" id="b-resultados"></ul>
+            <div id="b-ficha" class="b-ficha" hidden></div>
+            <div class="g-fotos" id="b-fotos-box" hidden>
+              <div class="g-fotos-cab"><b>Fotos del equipo</b> <span class="muted small">Clic para ampliar · se guardan en el activo</span></div>
+              <div class="g-miniaturas" id="b-miniaturas"></div>
+              <input type="file" id="b-input" accept="image/*" multiple hidden>
+              <input type="file" id="b-camara" accept="image/*" capture="environment" hidden>
+              <div class="acciones wrap" style="justify-content:flex-start">
+                <button type="button" class="ghost" id="b-tomar">Tomar foto</button>
+                <button type="button" class="ghost" id="b-agregar-foto">Agregar imágenes</button>
+              </div>
+            </div>
+          </div>
+          <div class="b-col">
+            <div class="b-campos">
+              <label>Valor en libros ($) <input id="b-valor" type="number" min="0" step="0.01" placeholder="0.00"></label>
+              <label>Motivo
+                <select id="b-motivo"><option>Deteriorado</option><option>En desuso</option><option>Dañado sin reparación</option><option>Obsoleto</option></select>
+              </label>
+              <label>Dirigido a (quien autoriza) <input id="b-autoriza" placeholder="Nombre de quien autoriza"></label>
+              <label>Tratamiento
+                <select id="b-trat"><option>Estimado Señor</option><option>Estimada Señora</option><option>Estimado/a</option></select>
+              </label>
+              <label>Subgerente que certifica <input id="b-gerente" placeholder="Nombre del subgerente"></label>
+              <label>Jefe de área <input id="b-jefe" placeholder="Nombre del jefe de área"></label>
+            </div>
+            <label>Observación <textarea id="b-obs" rows="2" placeholder="Detalle del estado del equipo (opcional)"></textarea></label>
+            <div class="acciones">
+              <button type="button" class="ghost" id="b-ficha-pdf" disabled>📄 Ficha en PDF</button>
+              <button type="button" class="primary" id="b-agregar" disabled>Agregar a activos por dar de baja</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Activos por dar de baja</h2>
+          <div class="acciones wrap">
+            <button type="button" class="ghost" id="b-pdf-todas">📄 Fichas PDF de las bajas pendientes</button>
+            <button type="button" class="primary" data-ir="correo" data-enfoque="Baja de Activos">Enviar solicitud por Outlook</button>
+          </div>
+        </div>
+        <div id="b-lista" class="b-lista"></div>
+        <details class="agregar-activo" id="b-aprobados-box" hidden>
+          <summary id="b-aprobados-tit">Bajas aprobadas</summary>
+          <div id="b-aprobados" class="b-lista"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- PRODUCTO (Inventario Total / Arqueo de Producto) -->
+    <section data-panel="producto" hidden>
+      <div class="card">
+        <div class="prod-head">
+          <label>Informe auditoría
+            <select id="p-tipo"><option>Inventario Total Producto</option><option>Arqueo de Producto</option></select>
+          </label>
+          <label>Local <input id="p-local" list="lista-locales" placeholder="Escribe o elige un local"></label>
+          <label>Venta neta ($) <input id="p-venta" type="number" min="0" step="0.01" placeholder="0.00"></label>
+          <label>Fecha <input id="p-fecha" type="date"></label>
+        </div>
+        <div class="carga" id="p-carga">
+          <div class="carga-txt">
+            <b>Usos y consumos del SIR</b>
+            <span class="muted small" id="p-archivo-info">Sube el archivo .xls exportado del SIR (o arrástralo aquí) para llenar automáticamente el TOP de sobrantes y faltantes.</span>
+          </div>
+          <label class="inline">Top <select id="p-top"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></label>
+          <input type="file" id="p-archivo" accept=".xls,.xlsx,.htm,.html" hidden>
+          <button class="primary" type="button" id="p-subir">Subir archivo</button>
+        </div>
+        <div class="ef-box ancho">
+          <span class="ef-titulo">Efectividad inventarios totales</span>
+          <label>Ítems <input class="ef-items" type="number" min="0" step="1" placeholder="0"></label>
+          <label>Error <input class="ef-error" type="number" min="0" step="1" placeholder="0"></label>
+          <div class="ef-out"><span>Efectividad</span><b class="ef-valor">—</b><small class="ef-puntos"></small></div>
+        </div>
+        <div class="costos">
+          <table class="costos-tabla">
+            <thead><tr><th>Costo (% de la venta)</th><th class="num">Ideal %</th><th class="num">Real %</th><th class="num">Diferencia</th><th>Fecha</th></tr></thead>
+            <tbody>
+              <tr><th>Inventario administrativo</th>
+                <td><input data-costo="admIdeal" type="number" step="0.01" placeholder="0,00"></td>
+                <td><input data-costo="admReal" type="number" step="0.01" placeholder="0,00"></td>
+                <td class="num dif" data-dif="adm">—</td>
+                <td><input data-costo="admFecha" type="date"></td></tr>
+              <tr class="destacada"><th>Inventario auditor <small>(se certifica en el correo)</small></th>
+                <td><input data-costo="audIdeal" type="number" step="0.01" placeholder="0,00"></td>
+                <td><input data-costo="audReal" type="number" step="0.01" placeholder="0,00"></td>
+                <td class="num dif" data-dif="aud">—</td>
+                <td><input data-costo="audFecha" type="date"></td></tr>
+              <tr><th><input data-costo="perTexto" class="per-texto" placeholder="Costos del 01 al 13 septiembre"></th>
+                <td><input data-costo="perIdeal" type="number" step="0.01" placeholder="0,00"></td>
+                <td><input data-costo="perReal" type="number" step="0.01" placeholder="0,00"></td>
+                <td class="num dif" data-dif="per">—</td>
+                <td></td></tr>
+            </tbody>
+          </table>
+          <div class="mermas">
+            <label>Mermas (%) <input data-costo="merma" type="number" step="0.01" placeholder="0,00"></label>
+            <label>Lunch (%) <input data-costo="lunch" type="number" step="0.01" placeholder="0,00"></label>
+            <p class="muted small">Diferencia = Ideal − Real. Positiva es <b>sobrante</b>; negativa, <b>faltante</b>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Venta neta vs. sobrantes y faltantes TOP</h2>
+            <p class="muted small" id="d-sub"></p>
+          </div>
+          <div class="seg" role="radiogroup" aria-label="Alcance del dashboard">
+            <label><input type="radio" name="d-alcance" value="local" checked><span>Este local</span></label>
+            <label><input type="radio" name="d-alcance" value="todos"><span>Todos mis locales</span></label>
+          </div>
+        </div>
+        <div class="dash">
+          <div class="pie" id="d-pie"></div>
+          <div class="dash-side">
+            <div class="kpis dash-kpis" id="d-kpis"></div>
+            <ul class="leyenda" id="d-leyenda"></ul>
+          </div>
+        </div>
+        <div class="acciones wrap reporte-acciones">
+          <span class="muted small">Para tu correo:</span>
+          <button class="ghost" id="r-descargar">Descargar imagen</button>
+          <button class="ghost" id="r-copiar-tabla">Copiar como tabla</button>
+          <button class="primary" id="r-copiar-img">Copiar como imagen</button>
+        </div>
+      </div>
+
+      <div class="grid-2 parejo">
+        <div class="card">
+          <div class="card-head">
+            <h2 class="t-sob">Sobrantes producto TOP</h2>
+            <div class="afecta"><span>Afectación al costo</span><b id="p-sob-pct">0,00%</b><b id="p-sob-total">$0,00</b></div>
+          </div>
+          <div class="tabla-wrap">
+            <table class="prod" id="p-sobrantes">
+              <thead><tr><th class="col-quitar"><span class="sr">Eliminar</span></th><th>Artículo</th><th>Unidad</th><th class="num">Cantidad</th><th class="num">Total $</th><th class="num">Costo U.</th><th class="num">% venta</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <button class="ghost sm" data-agregar="sobrantes">+ Agregar fila</button>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2 class="t-fal">Faltante producto TOP</h2>
+            <div class="afecta"><span>Afectación al costo</span><b id="p-fal-pct">0,00%</b><b id="p-fal-total">$0,00</b></div>
+          </div>
+          <div class="tabla-wrap">
+            <table class="prod" id="p-faltantes">
+              <thead><tr><th class="col-quitar"><span class="sr">Eliminar</span></th><th>Artículo</th><th>Unidad</th><th class="num">Cantidad</th><th class="num">Total $</th><th class="num">Costo U.</th><th class="num">% venta</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <button class="ghost sm" data-agregar="faltantes">+ Agregar fila</button>
+        </div>
+      </div>
+      <div class="acciones">
+        <button class="ghost" id="p-registrar">Registrar en tendencias</button>
+        <button class="primary" data-ir="correo" data-enfoque="Inventario Total Producto">Enviar informe de producto por Outlook</button>
+      </div>
+    </section>
+
+    <!-- TENDENCIAS -->
+    <section data-panel="tendencias" hidden>
+      <div class="local-bar">
+        <label>Local
+          <input id="t-local" list="lista-locales" placeholder="Escribe o elige un local">
+        </label>
+        <label>Año <select id="t-anio"></select></label>
+        <div class="muted small t-nota">El puntaje de cada mes se guarda al pulsar «Registrar en tendencias» en Informe o al enviar el correo. Agosto 2026 viene de la matriz Excel.</div>
+      </div>
+      <div class="kpis" id="t-kpis"></div>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2 id="t-titulo">Puntaje del check list por mes</h2>
+            <p class="muted small">Sobre 100 · línea punteada = meta 90 y alerta 75</p>
+          </div>
+        </div>
+        <div class="chart" id="t-chart"></div>
+      </div>
+      <div class="card">
+        <h2>Análisis y tendencias por mes</h2>
+        <p class="muted small">Cuentas por cobrar, mermas, lunch y costo se escriben aquí (como en la hoja Novedades) y se guardan solos.</p>
+        <div class="tabla-wrap">
+          <table id="t-tabla">
+            <thead><tr>
+              <th>Mes</th><th class="num">Puntaje</th><th class="num">Novedades</th><th class="num">Efectividad</th>
+              <th class="num">Activos c/ novedad</th><th>Fuente</th>
+              <th class="num">Cuentas cobrar ($)</th><th class="num">Mermas (%)</th><th class="num">Lunch (%)</th><th class="num">Costo R. (%)</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Resumen de locales</h2>
+        <p class="muted small" id="t-resumen-txt"></p>
+        <div class="tabla-wrap">
+          <table id="t-mapa" class="mapa"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MANUALES DE AUDITORÍA: todos los ven; solo el admin los edita y publica -->
+    <section data-panel="manuales" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Manuales de auditoría</h2>
+            <p class="muted small" id="mn-info"></p>
+          </div>
+          <div class="acciones wrap" id="mn-admin" hidden>
+            <input type="file" id="mn-carpeta" webkitdirectory multiple hidden>
+            <input type="file" id="mn-archivos" accept="image/gif,image/*" multiple hidden>
+            <button type="button" class="ghost" id="mn-subir-carpeta">📁 Subir carpeta de GIF</button>
+            <button type="button" class="ghost" id="mn-subir">Subir GIF</button>
+            <button type="button" class="primary" id="mn-publicar">Publicar para todos</button>
+          </div>
+        </div>
+        <p class="aviso-admin small" id="mn-aviso" hidden></p>
+        <div class="mn-barra">
+          <input id="mn-buscar" type="search" placeholder="Buscar manual por título o sección…">
+          <label class="mn-formato">Descargar como
+            <select id="mn-formato"><option value="gif">GIF animado</option><option value="imagen">Imagen (PNG)</option></select></label>
+        </div>
+        <div id="mn-secciones" class="mn-secciones"></div>
+      </div>
+    </section>
+
+    <!-- CONCILIACIÓN BANCARIA (sube: usuario de Conciliación · ven: auditores, cada uno sus locales) -->
+    <section data-panel="conciliacion" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Conciliación bancaria</h2>
+            <p class="muted small" id="cb-info"></p>
+          </div>
+          <div class="acciones wrap">
+            <input type="file" id="cb-archivo" accept=".xlsx,.xlsm,.xls,.csv,.txt,.htm,.html" hidden>
+            <input type="file" id="cb-recibido" accept=".json,.eml,application/json,message/rfc822" hidden>
+            <label class="na-orden" id="cb-minimo-box" hidden title="En Novedades bancarias, las diferencias menores a este valor (centavos de redondeo) sin acción no se notifican">Diferencia mínima $ <input id="cb-minimo" type="number" min="0" step="0.01" style="width:80px"></label>
+            <button type="button" class="primary" id="cb-subir" hidden>📤 Subir Excel de conciliación</button>
+            <button type="button" class="ghost" id="cb-publicar" hidden title="Guarda la conciliación en la carpeta de la aplicación para que la vean los auditores">Publicar para todos</button>
+            <button type="button" class="ghost" id="cb-correo-todos" hidden>✉ Correo general</button>
+            <button type="button" class="ghost" id="cb-cargar" hidden title="El correo .eml o el archivo .json de conciliación que te enviaron">📥 Cargar archivo recibido</button>
+          </div>
+        </div>
+        <div id="cb-mapeo" class="cb-mapeo" hidden>
+          <p class="small"><b id="cb-mapeo-archivo"></b> · Revisa qué columna del Excel corresponde a cada dato y pulsa <b>Analizar</b>.</p>
+          <div class="cb-campos" id="cb-campos"></div>
+          <div class="tabla-scroll"><table class="cb-previa" id="cb-previa"></table></div>
+          <div class="acciones"><button type="button" class="ghost" id="cb-cancelar">Cancelar</button><button type="button" class="primary" id="cb-analizar">Analizar</button></div>
+        </div>
+        <div class="kpis mini" id="cb-kpis"></div>
+        <div id="cb-resumen"></div>
+        <div class="na-filtros">
+          <input id="cb-buscar" type="search" placeholder="Buscar local, banco, documento, novedad…">
+          <select id="cb-auditor" aria-label="Auditor"></select>
+          <select id="cb-tipo" aria-label="Tipo de novedad"></select>
+          <select id="cb-estado" aria-label="Revisión"><option value="">Todas</option><option>Pendiente</option><option>Revisado</option><option>Justificado</option></select>
+        </div>
+        <div id="cb-lista"></div>
+      </div>
+    </section>
+
+    <!-- NOVEDADES DE ACTIVOS (usuario de Activos) -->
+    <section data-panel="novact" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Novedades de activos</h2>
+            <p class="muted small" id="na-info"></p>
+          </div>
+          <div class="acciones wrap">
+            <input type="file" id="na-archivos" accept=".json,.eml,application/json,message/rfc822" multiple hidden>
+            <button type="button" class="ghost" id="na-cargar" title="El correo .eml o el archivo .json que envían los auditores con «Enviar a Activos»">📥 Cargar archivos de auditores</button>
+            <button type="button" class="ghost" id="na-excel">⬇ Descargar Excel</button>
+          </div>
+        </div>
+        <div class="kpis mini" id="na-kpis"></div>
+        <div class="na-filtros">
+          <input id="na-buscar" type="search" placeholder="Buscar código, equipo, serie, local, auditor…">
+          <select id="na-tipo" aria-label="Tipo de novedad"></select>
+          <select id="na-auditor" aria-label="Auditor"></select>
+          <select id="na-estado" aria-label="Gestión"><option value="">Todas las gestiones</option><option>Pendiente</option><option>En proceso</option><option>Atendido</option></select>
+          <label class="na-orden">Ordenar por <select id="na-orden"><option value="cadena">Marca del local</option><option value="marca">Marca del equipo</option></select></label>
+        </div>
+        <div id="na-lista"></div>
+      </div>
+    </section>
+
+    <!-- CORREO OUTLOOK -->
+    <section data-panel="correo" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Mensaje a Outlook</h2>
+          <div class="seg m-cat" role="radiogroup" aria-label="Tipo de correo">
+            <label><input type="radio" name="m-cat" value="informe" checked><span>📋 Informe</span></label>
+            <label><input type="radio" name="m-cat" value="activos"><span>🏷️ Activos</span></label>
+            <label><input type="radio" name="m-cat" value="producto"><span>📦 Producto</span></label>
+            <label><input type="radio" name="m-cat" value="baja"><span>🗑️ Baja</span></label>
+          </div>
+          <p class="muted small" id="m-cat-desc"></p>
+          <label>Asunto del correo
+            <select id="m-enfoque"></select>
+          </label>
+          <div class="para-fila">
+            <label>Saludo
+              <select id="m-saludo"><option>Estimado/a</option><option>Estimada</option><option>Estimado</option><option>Estimados</option></select>
+            </label>
+            <label>Para <input id="m-para" type="text" placeholder="correo@empresa.com; otro@empresa.com"></label>
+          </div>
+          <label>CC <input id="m-cc" type="text" placeholder="opcional"></label>
+          <label>Asunto <input id="m-asunto" type="text"></label>
+          <label>Mensaje <textarea id="m-cuerpo" rows="14"></textarea></label>
+          <div class="acciones wrap">
+            <button class="ghost" id="btn-regenerar">Regenerar texto</button>
+            <button class="ghost" id="btn-copiar">Copiar</button>
+            <button class="ghost" id="btn-eml">Borrador .eml</button>
+            <button class="ghost" id="btn-owa">Outlook Web</button>
+            <button class="primary" id="btn-outlook">Abrir en Outlook</button>
+          </div>
+          <p class="muted small" id="m-aviso"></p>
+        </div>
+        <div class="card">
+          <h2>Vista previa</h2>
+          <div id="m-preview" class="preview"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" role="status" hidden></div>
+
+<!-- Fichas de activos para imprimir / guardar en PDF -->
+<div id="vista-fichas" class="vista-fichas" hidden>
+  <div class="vf-barra">
+    <div><b>Fichas de activos</b> <span class="muted small" id="vf-info"></span></div>
+    <label class="inline">Incluir
+      <select id="vf-que">
+        <option value="todos">Todos los activos</option><option value="filtro">Los del filtro actual</option>
+        <option value="nov">Solo con novedad</option><option value="fotos">Solo con fotos</option>
+        <option value="novedades">Novedades (crear, modificar, perdidos)</option>
+        <option value="solo" hidden>Activos de baja seleccionados</option>
+      </select></label>
+    <label class="inline">Por hoja <select id="vf-pp"><option value="1">1 ficha</option><option value="2" selected>2 fichas</option></select></label>
+    <button type="button" class="ghost" id="vf-cerrar">Cerrar</button>
+    <button type="button" class="primary" id="vf-pdf">Descargar PDF</button>
+  </div>
+  <p class="muted small vf-ayuda">Haz clic en una foto para ampliarla. En «Descargar PDF» elige <b>Guardar como PDF</b> como impresora.</p>
+  <div id="vf-hojas" class="vf-hojas"></div>
+</div>
+
+<!-- Fotos de un activo -->
+<dialog id="dlg-fotos" class="dlg">
+  <div class="dlg-head">
+    <div><h2 id="f-titulo">Fotos</h2><p class="muted small" id="f-sub"></p></div>
+    <button type="button" class="ghost sm" id="f-cerrar">Cerrar</button>
+  </div>
+  <div class="fotos-grid" id="f-grid"></div>
+  <div class="acciones wrap">
+    <span class="muted small">Las fotos se reducen y se guardan en este navegador.</span>
+    <input type="file" id="f-input" accept="image/*" multiple hidden>
+    <input type="file" id="f-camara" accept="image/*" capture="environment" hidden>
+    <button type="button" class="ghost" id="f-tomar">Tomar foto</button>
+    <button type="button" class="primary" id="f-agregar">Agregar imágenes</button>
+  </div>
+</dialog>
+<!-- Importar respaldo .json -->
+<dialog id="dlg-json" class="dlg">
+  <div class="dlg-head">
+    <div><h2>Importar respaldo de la app</h2><p class="muted small" id="jd-archivo"></p></div>
+    <button type="button" class="ghost sm" id="jd-cerrar">Cancelar</button>
+  </div>
+  <div class="jd-cuerpo">
+    <label>Local a importar <select id="jd-local"></select></label>
+    <div class="kpis jd-resumen" id="jd-resumen"></div>
+    <label class="chk"><input type="checkbox" id="jd-ok" checked> <span>Marcar como verificados (<b>Procesos y Controles OK</b>) los activos encontrados en la app sin novedad</span></label>
+    <label class="chk"><input type="checkbox" id="jd-fotos" checked> <span>Importar las fotos <span class="muted small" id="jd-nfotos"></span></span></label>
+    <label class="chk"><input type="checkbox" id="jd-solo" checked> <span>Agregar a la lista los activos que están solo en la app (no en el SIR)</span></label>
+    <p class="muted small" id="jd-aviso"></p>
+  </div>
+  <div class="acciones">
+    <button type="button" class="ghost" id="jd-todos">Importar todos los locales</button>
+    <button type="button" class="primary" id="jd-importar">Importar este local</button>
+  </div>
+</dialog>
+<!-- Asignar fotos sueltas a activos -->
+<dialog id="dlg-asignar" class="dlg ancho">
+  <div class="dlg-head">
+    <div><h2>Asignar fotos sueltas</h2><p class="muted small" id="as-sub"></p></div>
+    <button type="button" class="ghost sm" id="as-cerrar">Cerrar</button>
+  </div>
+  <div class="as-cuerpo">
+    <div class="as-fotos" id="as-fotos" aria-label="Fotos sin asignar"></div>
+    <div class="as-panel">
+      <div class="as-sel"><b id="as-nsel">0 seleccionadas</b>
+        <span><button type="button" class="ghost sm" id="as-limpiar">Quitar selección</button>
+        <button type="button" class="ghost sm" id="as-eliminar">Eliminar</button></span></div>
+      <label>Asignar a… <input id="as-buscar" type="search" placeholder="Código, nombre o serie del activo" autocomplete="off"></label>
+      <label class="chk"><input type="checkbox" id="as-sinfotos" checked> <span>Solo activos sin fotos</span></label>
+      <label class="inline">Agrupar fotos tomadas con menos de
+        <select id="as-gap"><option value="5">5 s</option><option value="10">10 s</option><option value="15" selected>15 s</option><option value="20">20 s</option><option value="30">30 s</option><option value="60">60 s</option></select>
+        de diferencia</label>
+      <ul class="as-resultados" id="as-resultados"></ul>
+      <p class="muted small">Las fotos van en orden de hora y se agrupan cuando se tomaron seguidas. Clic = seleccionar · Shift+clic = rango ·
+        doble clic = ver grande · <b>Enter</b> asigna al primer resultado y salta al siguiente grupo.</p>
+    </div>
+  </div>
+</dialog>
+<dialog id="dlg-vl" class="dlg ancho">
+  <div class="dlg-head">
+    <div><h2 id="vl-titulo">Valor en libros</h2><p class="muted small" id="vl-sub"></p></div>
+    <span class="acciones"><button type="button" class="ghost sm" id="vl-excel">⬇ Excel</button><button type="button" class="ghost sm" id="vl-cerrar">Cerrar</button></span>
+  </div>
+  <div id="vl-cuerpo" class="vl-cuerpo"></div>
+</dialog>
+<dialog id="dlg-ver" class="dlg ver">
+  <div class="visor" id="f-visor"><img id="f-grande" alt="" draggable="false"></div>
+  <div class="visor-barra">
+    <span class="muted small">Rueda del mouse: zoom · arrastrar: mover · doble clic: restablecer</span>
+    <button type="button" class="ghost sm" id="z-menos" aria-label="Alejar">−</button>
+    <span class="zoom-nivel" id="z-nivel">100%</span>
+    <button type="button" class="ghost sm" id="z-mas" aria-label="Acercar">+</button>
+    <button type="button" class="ghost sm" id="z-reset">Ajustar</button>
+    <button type="button" class="ghost sm" id="f-cerrar-ver">Cerrar</button>
+  </div>
+</dialog>
+
+<script src="data.js?v=71"></script>
+<script src="usuarios.js?v=71"></script>
+<!-- Manuales publicados por el admin (si la carpeta aún no existe, la lista queda vacía) -->
+<script src="manuales/manuales.js?v=71" onerror="window.MANUALES = window.MANUALES || []"></script>
+<script src="conciliacion/conciliacion.js?v=71" onerror="window.CONCILIACION = window.CONCILIACION || null"></script>
+<script src="app.js?v=71"></script>
+</body>
+</html>
